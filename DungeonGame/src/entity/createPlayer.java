@@ -33,43 +33,65 @@ public class createPlayer extends entity{
 			right = ImageIO.read(getClass().getResourceAsStream("/player/tiltedright.png"));
 			still = ImageIO.read(getClass().getResourceAsStream("/player/tiltedstill.png"));
 			
-			
-			
 		}catch(IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void setDefaultValues() {
-		x=100;
-		y=100;
-		speed=10;
-		direction="still";
+		x = 0; // Start at top-left corner
+		y = 0;
+		speed = gp.TileSize; // Move one tile at a time
+		direction = "still";
 	}
+	
 	public void update() {
+		int newX = x;
+		int newY = y;
+		
 		if(keyH.upPress == true) {
 			direction = "up";
-			y -= speed;
+			newY = y - speed;
 		}
 		else if(keyH.downPress == true) {
 			direction = "down";
-			y += speed;
+			newY = y + speed;
 		}
 		else if(keyH.leftPress == true) {
 			direction = "left";
-			x -= speed;
+			newX = x - speed;
 		}
 		else if(keyH.rightPress == true) {
 			direction = "right";
-			x += speed;
-		}else {
+			newX = x + speed;
+		} else {
 			direction = "still";
+			return; // No movement, no need to check collision
 		}
 		
-		//spriteCount++;
-		//if(s)
-		
+		// Check collision before moving
+		if (!gp.tileM.isWall(newX, newY) && 
+			!gp.tileM.isWall(newX + gp.TileSize - 1, newY) &&
+			!gp.tileM.isWall(newX, newY + gp.TileSize - 1) &&
+			!gp.tileM.isWall(newX + gp.TileSize - 1, newY + gp.TileSize - 1)) {
+			
+			x = newX;
+			y = newY;
+			
+			// Check if player reached the exit (bottom-right area)
+			int tileX = x / gp.TileSize;
+			int tileY = y / gp.TileSize;
+			
+			if (tileX >= gp.maxScreenCol - 2 && tileY >= gp.maxScreenRow - 2) {
+				// Player reached the exit, generate new maze
+				gp.tileM.regenerateMaze();
+				x = 0;
+				y = 0;
+				direction = "still";
+			}
+		}
 	}
+	
 	public void draw(Graphics2D g2) {
 		
 		BufferedImage image = null;
