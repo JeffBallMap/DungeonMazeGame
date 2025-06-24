@@ -46,6 +46,11 @@ public class createPlayer extends entity{
 	}
 	
 	public void update() {
+		// Only allow movement if game is active
+		if (!gp.isGameActive()) {
+			return;
+		}
+		
 		int newX = x;
 		int newY = y;
 		
@@ -83,11 +88,8 @@ public class createPlayer extends entity{
 			int tileY = y / gp.TileSize;
 			
 			if (tileX >= gp.maxScreenCol - 2 && tileY >= gp.maxScreenRow - 2) {
-				// Player reached the exit, generate new maze
-				gp.tileM.regenerateMaze();
-				x = 0;
-				y = 0;
-				direction = "still";
+				// Player reached the exit, generate new maze and increment counter
+				gp.nextMaze();
 			}
 		}
 	}

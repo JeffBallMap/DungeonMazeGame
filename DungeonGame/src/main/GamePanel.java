@@ -31,7 +31,11 @@ public class GamePanel extends JPanel implements Runnable{
 	Thread gameThread;
 	createPlayer player = new createPlayer(this, keyH);
 	
-	private int mazeCount = 1;
+	private int mazesCompleted = 0;
+	private long gameStartTime;
+	private long gameDuration = 10 * 60 * 1000; // 10 minutes in milliseconds
+	private boolean gameActive = true;
+	private boolean gameStarted = false;
 	
 	public GamePanel() {
 		this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -44,6 +48,25 @@ public class GamePanel extends JPanel implements Runnable{
 	public void startGameThread() {
 		gameThread = new Thread(this);
 		gameThread.start();
+	}
+	
+	public void startGame() {
+		if (!gameStarted) {
+			gameStartTime = System.currentTimeMillis();
+			gameStarted = true;
+			gameActive = true;
+			mazesCompleted = 0;
+		}
+	}
+	
+	public long getRemainingTime() {
+		if (!gameStarted) return gameDuration;
+		long elapsed = System.currentTimeMillis() - gameStartTime;
+		return Math.max(0, gameDuration - elapsed);
+	}
+	
+	public boolean isGameActive() {
+		return gameActive && getRemainingTime() > 0;
 	}
 	
 	@Override
@@ -77,16 +100,43 @@ public class GamePanel extends JPanel implements Runnable{
 	}
 	
 	public void update() {
-		// Check for maze regeneration key
-		if (keyH.isKeyPressed(KeyEvent.VK_R)) {
-			tileM.regenerateMaze();
-			player.x = 0;
-			player.y = 0;
-			player.direction = "still";
-			mazeCount++;
+		// Start game on first input
+		if (!gameStarted && (keyH.upPress || keyH.downPress || keyH.leftPress || keyH.rightPress)) {
+			startGame();
 		}
 		
-		player.update();
+		// Check if game time is up
+		if (gameStarted && getRemainingTime() <= 0) {
+			gameActive = false;
+		}
+		
+		// Only allow game actions if game is active
+		if (isGameActive()) {
+			// Check for maze regeneration key
+			if (keyH.isKeyPressed(KeyEvent.VK_R)) {
+				tileM.regenerateMaze();
+				player.x = 0;
+				player.y = 0;
+				player.direction = "still";
+			}
+			
+			player.update();
+		}
+		
+		// Allow restart even when game is over
+		if (!gameActive && keyH.isKeyPressed(KeyEvent.VK_SPACE)) {
+			restartGame();
+		}
+	}
+	
+	public void restartGame() {
+		gameStarted = false;
+		gameActive = true;
+		mazesCompleted = 0;
+		tileM.regenerateMaze();
+		player.x = 0;
+		player.y = 0;
+		player.direction = "still";
 	}
 	
 	public void paintComponent(Graphics g) {
@@ -97,8 +147,10 @@ public class GamePanel extends JPanel implements Runnable{
 		// Draw maze
 		tileM.draw(g2);
 		
-		// Draw player
-		player.draw(g2);
+		// Draw player (only if game is active)
+		if (isGameActive()) {
+			player.draw(g2);
+		}
 		
 		// Draw UI
 		drawUI(g2);
@@ -107,25 +159,56 @@ public class GamePanel extends JPanel implements Runnable{
 	}
 	
 	private void drawUI(Graphics2D g2) {
+		// Timer and score
 		g2.setColor(Color.WHITE);
-		g2.setFont(new Font("Arial", Font.BOLD, 16));
+		g2.setFont(new Font("Arial", Font.BOLD, 18));
 		
-		// Draw instructions
-		g2.drawString("WASD/Arrow Keys: Move", 10, 25);
-		g2.drawString("R: New Maze", 10, 45);
-		g2.drawString("Goal: Reach bottom-right corner", 10, 65);
-		g2.drawString("Maze #" + mazeCount, screenWidth - 100, 25);
+		long remainingTime = getRemainingTime();
+		int minutes = (int) (remainingTime / 60000);
+		int seconds = (int) ((remainingTime % 60000) / 1000);
 		
-		// Draw exit indicator
-		g2.setColor(Color.GREEN);
-		g2.fillRect(screenWidth - TileSize, screenHeight - TileSize, TileSize/4, TileSize/4);
-		g2.setColor(Color.WHITE);
-		g2.setFont(new Font("Arial", Font.BOLD, 12));
-		g2.drawString("EXIT", screenWidth - TileSize + 5, screenHeight - TileSize/2);
+		g2.drawString(String.format("Time: %02d:%02d", minutes, seconds), 10, 25);
+		g2.drawString("Mazes Completed: " + mazesCompleted, 10, 50);
+		
+		// Instructions
+		g2.setFont(new Font("Arial", Font.BOLD, 14));
+		if (!gameStarted) {
+			g2.setColor(Color.YELLOW);
+			g2.drawString("Press any movement key to start!", 10, screenHeight - 80);
+			g2.setColor(Color.WHITE);
+			g2.drawString("Goal: Complete as many mazes as possible in 10 minutes!", 10, screenHeight - 60);
+			g2.drawString("WASD/Arrow Keys: Move  |  R: New Maze", 10, screenHeight - 40);
+			g2.drawString("Reach the bottom-right corner to complete each maze", 10, screenHeight - 20);
+		} else if (!gameActive) {
+			// Game over screen
+			g2.setColor(Color.RED);
+			g2.setFont(new Font("Arial", Font.BOLD, 24));
+			g2.drawString("TIME'S UP!", screenWidth/2 - 80, screenHeight/2 - 40);
+			
+			g2.setColor(Color.YELLOW);
+			g2.setFont(new Font("Arial", Font.BOLD, 20));
+			g2.drawString("Final Score: " + mazesCompleted + " mazes", screenWidth/2 - 100, screenHeight/2);
+			
+			g2.setColor(Color.WHITE);
+			g2.setFont(new Font("Arial", Font.BOLD, 16));
+			g2.drawString("Press SPACE to play again", screenWidth/2 - 90, screenHeight/2 + 40);
+		} else {
+			g2.drawString("WASD/Arrow Keys: Move  |  R: New Maze", 10, screenHeight - 40);
+			g2.drawString("Goal: Reach bottom-right corner", 10, screenHeight - 20);
+		}
+		
+		// Draw exit indicator (only if game is active)
+		if (isGameActive()) {
+			g2.setColor(Color.GREEN);
+			g2.fillRect(screenWidth - TileSize, screenHeight - TileSize, TileSize/3, TileSize/3);
+			g2.setColor(Color.WHITE);
+			g2.setFont(new Font("Arial", Font.BOLD, 10));
+			g2.drawString("EXIT", screenWidth - TileSize + 2, screenHeight - TileSize/2);
+		}
 	}
 	
 	public void nextMaze() {
-		mazeCount++;
+		mazesCompleted++;
 		tileM.regenerateMaze();
 		player.x = 0;
 		player.y = 0;
