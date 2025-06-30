@@ -50,7 +50,7 @@ public class MazeSolver {
 
     public boolean solveMaze(int x, int y) {
         // Reached goal
-        if (x == cols - 1 && y == rows - 1 && ( maze[x][y] == 1 || maze[x][y] == 2 || maze[x][y] == 3 maze[x][y] == 4) {
+        if (x == cols - 1 && y == rows - 1 && (maze[x][y] == 1 || maze[x][y] == 2 || maze[x][y] == 3 || maze[x][y] == 4)) {
             solution[x][y] = 1;
             return true;
         }
