@@ -6,7 +6,6 @@ import java.awt.event.KeyListener;
 public class keyHandler implements KeyListener{
 	
 	public boolean upPress, downPress, leftPress, rightPress;
-	private boolean[] keyPressed = new boolean[256];
 
 	@Override
 	public void keyTyped(KeyEvent e) {
@@ -17,31 +16,20 @@ public class keyHandler implements KeyListener{
 	public void keyPressed(KeyEvent e) {
 		int code = e.getKeyCode();
 		
-		// Prevent key repeat by checking if key was already pressed
-		if (keyPressed[code]) {
-			return;
-		}
-		keyPressed[code] = true;
-		
-		if(code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+		if(code == KeyEvent.VK_W) {
 			upPress = true;
 		}
 		
-		if(code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
+		if(code == KeyEvent.VK_A) {
 			leftPress = true;
 		}
 		
-		if(code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+		if(code == KeyEvent.VK_S) {
 			downPress = true;
 		}
 		
-		if(code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
+		if(code == KeyEvent.VK_D) {
 			rightPress = true;
-		}
-		
-		// Add R key to regenerate maze
-		if(code == KeyEvent.VK_R) {
-			// This will be handled in GamePanel
 		}
 		
 	}
@@ -49,27 +37,21 @@ public class keyHandler implements KeyListener{
 	@Override
 	public void keyReleased(KeyEvent e) {
 		int code = e.getKeyCode();
-		keyPressed[code] = false;
 		
-		if(code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+		if(code == KeyEvent.VK_W) {
 			upPress = false;
 		}
 		
-		if(code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
+		if(code == KeyEvent.VK_A) {
 			leftPress = false;
 		}
 		
-		if(code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+		if(code == KeyEvent.VK_S) {
 			downPress = false;
 		}
 		
-		if(code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
+		if(code == KeyEvent.VK_D) {
 			rightPress = false;
 		}
 	}
-	
-	public boolean isKeyPressed(int keyCode) {
-		return keyPressed[keyCode];
-	}
-
 }

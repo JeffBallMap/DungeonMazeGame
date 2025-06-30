@@ -2,6 +2,7 @@ package tiles;
 
 import java.awt.Graphics2D;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,29 +10,33 @@ import java.io.InputStreamReader;
 import javax.imageio.ImageIO;
 
 import main.GamePanel;
+import mazer.Maze;
 
 public class tileManger {
-	
 	GamePanel gp;
-	makeTile[] tile;
-	int mapTNum[][];
+	public makeTile[] tile;
+	public int mapTNum[][];
+	Maze maze;
 	
 	public tileManger(GamePanel gp) {
-		this.gp = gp;
-		tile = new makeTile[10];
-		mapTNum = new int[gp.maxScreenCol][gp.maxScreenRow];
-		
-		getTileImage();
-		loadMap();
-		
-		
-	}
+        this.gp = gp;
+        tile = new makeTile[10];
+        mapTNum = new int[gp.maxScreenCol][gp.maxScreenRow];
+
+        maze = new Maze(gp);  // Pass GamePanel here
+
+        String file = maze.saveMazeToPackageFolder("maze_output.txt");
+
+        getTileImage();
+        loadMap(file);
+    }
 	
 	public void getTileImage() {
 		try {
 			
 			tile[0] = new makeTile();
-			tile[0].imagee = ImageIO.read(getClass().getResourceAsStream("/tiles/mudtileclean.png"));//clean
+			tile[0].imagee = ImageIO.read(getClass().getResourceAsStream("/tiles/mudbrick.png"));//bricks aka walls
+			tile[0].collision = true;
 			
 			tile[1] = new makeTile();
 			tile[1].imagee = ImageIO.read(getClass().getResourceAsStream("/tiles/mudtilecracked.png"));//cracked
@@ -43,7 +48,7 @@ public class tileManger {
 			tile[3].imagee = ImageIO.read(getClass().getResourceAsStream("/tiles/mudtileejustsand.png"));//sand
 			
 			tile[4] = new makeTile();
-			tile[4].imagee = ImageIO.read(getClass().getResourceAsStream("/tiles/mudbrick.png"));//bricks
+			tile[4].imagee = ImageIO.read(getClass().getResourceAsStream("/tiles/mudtileclean.png"));//clean
 			
 		}catch(IOException e) {
 			e.printStackTrace();
@@ -53,10 +58,10 @@ public class tileManger {
 		
 	}
 	
-	public void loadMap() {
+	public void loadMap(String filePath) {
 		try {
 			
-			InputStream is = getClass().getResourceAsStream("/maps/testmap1.txt");
+			InputStream is = getClass().getResourceAsStream(filePath);
 			BufferedReader br = new BufferedReader(new InputStreamReader(is));
 			
 			int col = 0;

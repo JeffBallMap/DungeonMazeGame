@@ -1,6 +1,7 @@
 package entity;
 
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -13,16 +14,23 @@ public class createPlayer extends entity{
 	
 	GamePanel gp;
 	keyHandler keyH;
+	int hasGem = 0;
+	boolean reset = false;
 	
 	public createPlayer(GamePanel gp, keyHandler keyH) {
 		this.gp=gp;
 		this.keyH=keyH; 
 		
+		solidArea = new Rectangle(8,8,16,16);
+		solidAreaDefaultX = solidArea.x; 
+		solidAreaDefaultY = solidArea.y;
+		
+		speed=4;		
 		setDefaultValues();
 		getPlayerImages();
 	}
 	
-	public int spriteCount;
+	//public int spriteCount;
 	
 	public void getPlayerImages() {
 		try {
@@ -32,66 +40,84 @@ public class createPlayer extends entity{
 			left = ImageIO.read(getClass().getResourceAsStream("/player/tiltedleft.png"));
 			right = ImageIO.read(getClass().getResourceAsStream("/player/tiltedright.png"));
 			still = ImageIO.read(getClass().getResourceAsStream("/player/tiltedstill.png"));
-			
+						
 		}catch(IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void setDefaultValues() {
-		x = 0; // Start at top-left corner
-		y = 0;
-		speed = gp.TileSize; // Move one tile at a time
-		direction = "still";
+		x=1*gp.TileSize;
+		y=1*gp.TileSize;
+		direction="still";
 	}
 	
 	public void update() {
-		// Only allow movement if game is active
-		if (!gp.isGameActive()) {
-			return;
+		// If reset flag is true, return player to starting position
+		if (reset) {
+			setDefaultValues(); 
+			reset = false;      
+			return;             
 		}
-		
-		int newX = x;
-		int newY = y;
 		
 		if(keyH.upPress == true) {
 			direction = "up";
-			newY = y - speed;
 		}
 		else if(keyH.downPress == true) {
 			direction = "down";
-			newY = y + speed;
 		}
 		else if(keyH.leftPress == true) {
 			direction = "left";
-			newX = x - speed;
 		}
 		else if(keyH.rightPress == true) {
 			direction = "right";
-			newX = x + speed;
-		} else {
+		}else {
 			direction = "still";
-			return; // No movement, no need to check collision
 		}
 		
-		// Check collision before moving
-		if (!gp.tileM.isWall(newX, newY) && 
-			!gp.tileM.isWall(newX + gp.TileSize - 1, newY) &&
-			!gp.tileM.isWall(newX, newY + gp.TileSize - 1) &&
-			!gp.tileM.isWall(newX + gp.TileSize - 1, newY + gp.TileSize - 1)) {
+		
+		//Collision check
+		collisionOn = false;
+		gp.collcheck.checkTile(this);
+		int objIndex=gp.collcheck.checkObj(this, true);
+		pickUpObj(objIndex);
+		
+		//if collision will happen
+		if(collisionOn==false) {
+			switch(direction) {
+			case "up": y -= speed;
+				break;
+			case "down": y += speed;
+				break;
+			case "left": x -= speed;
+				break;
+			case "right": x += speed;
+				break;
+			}
+		}		
+	}
+	
+	public void pickUpObj(int index) {
+		
+		if(index != 999) {
+			String objName = gp.Obj[index].name;
 			
-			x = newX;
-			y = newY;
-			
-			// Check if player reached the exit (bottom-right area)
-			int tileX = x / gp.TileSize;
-			int tileY = y / gp.TileSize;
-			
-			if (tileX >= gp.maxScreenCol - 2 && tileY >= gp.maxScreenRow - 2) {
-				// Player reached the exit, generate new maze and increment counter
-				gp.nextMaze();
+			switch(objName) {
+			case "Gem":
+				gp.Obj[index] = null;
+				hasGem++;
+				System.out.println("You found a gem! You have "+hasGem +" gem(s).");
+				break;
+			case "Door":
+				reset = true;
+				break;
+			case "Time":
+				speed += 2;
+				gp.Obj[index] = null;
+				break;
 			}
 		}
+		
 	}
 	
 	public void draw(Graphics2D g2) {

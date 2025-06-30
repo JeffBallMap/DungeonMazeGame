@@ -26,7 +26,7 @@ public class tileManger {
 		mapTNum = new int[gp.maxScreenCol][gp.maxScreenRow];
 		
 		getTileImage();
-		generateRandomMaze(); // Generate initial maze instead of loading from file
+		generateRandomMaze();
 	}
 	
 	public void getTileImage() {
@@ -106,7 +106,7 @@ public class tileManger {
 			br.close();
 			
 		}catch(Exception e) {
-			e.printStackTrace();
+			
 		}
 	}
 	
