@@ -51,6 +51,7 @@ public class Maze {
         }
 
         generateMaze();
+        
     }
 
     public void generateMaze() {
@@ -112,7 +113,7 @@ public class Maze {
         }
     }
 
-    private void connectCells(int x1, int y1, int x2, int y2) {
+    public void connectCells(int x1, int y1, int x2, int y2) {
         adjList.get(mazeCell[x1][y1]).add(mazeCell[x2][y2]);
         adjList.get(mazeCell[x2][y2]).add(mazeCell[x1][y1]);
     }
@@ -128,55 +129,58 @@ public class Maze {
     }
 
     public String opMaze() {
-        StringBuilder printMaze = new StringBuilder();
-        printMaze.append("0 ".repeat(gp.maxScreenCol)).append("\n");
+        int visualRows = mazeRow * 2 + 1;
+        int visualCols = mazeCol * 2 + 1;
+        StringBuilder sb = new StringBuilder();
 
-        ArrayList<String> walls = new ArrayList<>();
-        ArrayList<String> floors = new ArrayList<>();
-
-        for (int x = 0; x < mazeCell.length; x++) {
-            StringBuilder wall = new StringBuilder("0 ");
-            StringBuilder floor = new StringBuilder();
-
-            for (int y = 0; y < mazeCell[x].length; y++) {
-                if (y + 1 != mazeRow && adjList.get(mazeCell[x][y]).contains(mazeCell[x][y + 1])) {
-                    wall.append(tileChoice("123444")).append(" ").append(tileChoice("123444")).append(" ");
-                } else if (y + 1 == mazeRow) {
-                    wall.append("0");
-                } else {
-                    wall.append("0 ");
+        for (int r = 0; r < visualRows; r++) {
+            for (int c = 0; c < visualCols; c++) {
+                int tileNum = 0;
+                
+                if(c ==24&&r==1) {
+                	tileNum = Character.getNumericValue(tileChoice("123444"));
+                }else if (r % 2 == 1 && c % 2 == 1) {
+                    // Maze cell
+                    int cellX = r / 2;
+                    int cellY = c / 2;
+                    tileNum = Character.getNumericValue(tileChoice("123444")); // bias for '4'
+                }
+                else if (r % 2 == 1 && c % 2 == 0) {
+                    // Horizontal wall between cells
+                    int cellX = r / 2;
+                    int leftY = c / 2 - 1;
+                    int rightY = c / 2;
+                    if (leftY >= 0 && rightY < mazeRow &&
+                        adjList.get(mazeCell[cellX][leftY]).contains(mazeCell[cellX][rightY])) {
+                        tileNum = Character.getNumericValue(tileChoice("123444"));
+                    }
+                }
+                else if (r % 2 == 0 && c % 2 == 1) {
+                    // Vertical wall between cells
+                    int topX = r / 2 - 1;
+                    int bottomX = r / 2;
+                    int cellY = c / 2;
+                    if (topX >= 0 && bottomX < mazeCol &&
+                        adjList.get(mazeCell[topX][cellY]).contains(mazeCell[bottomX][cellY])) {
+                        tileNum = Character.getNumericValue(tileChoice("123444"));
+                    }
                 }
 
-                if (x + 1 < mazeRow && adjList.get(mazeCell[x][y]).contains(mazeCell[x + 1][y])) {
-                    floor.append("0 ");
-                } else {
-                    floor.append("0 ").append(tileChoice("1234")).append(" ");
-                }
+                // Borders and remaining walls remain 0
+                sb.append(tileNum);
+                if (c < visualCols - 1) sb.append(" ");
             }
-            floor.append("0");
-
-            walls.add(wall.toString());
-            if (x != mazeRow - 1) {
-                floors.add(floor.toString());
-            }
+            sb.append("\n");
         }
 
-        for (int x = 0; x < walls.size(); x++) {
-            printMaze.append(walls.get(x)).append("\n");
-            if (x != walls.size() - 1) {
-                printMaze.append(floors.get(x)).append("\n");
-            }
-        }
-
-        printMaze.append("0 ".repeat(mazeRow - 1)).append("0 0 0");
-
-        return printMaze.toString();
+        return sb.toString();
     }
+
 
     public String saveMazeToPackageFolder(String filename) {
         try {
             String packagePath = new File(Maze.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath();
-            File dir = new File(packagePath, "/src/res/maps/");
+            File dir = new File(packagePath, "src/res/maps/");
 
             if (!dir.exists()) {
                 dir.mkdirs();
@@ -189,11 +193,12 @@ public class Maze {
 
             System.out.println("Maze saved to: " + file.getAbsolutePath());
 
-            return "/mazer/" + filename;
+            return "/src/res/maps/" + filename;
 
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
             return null;
         }
     }
+    
 }

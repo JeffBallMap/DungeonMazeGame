@@ -15,8 +15,8 @@ import maze.MazeGenerator;
 public class tileManger {
 	
 	GamePanel gp;
-	public makeTile[] tile;
-	public int mapTNum[][];
+	makeTile[] tile;
+	int mapTNum[][];
 	private Random random;
 	
 	public tileManger(GamePanel gp) {

@@ -23,7 +23,7 @@ public class tileManger {
         tile = new makeTile[10];
         mapTNum = new int[gp.maxScreenCol][gp.maxScreenRow];
 
-        maze = new Maze(gp);  // Pass GamePanel here
+        maze = new Maze(gp);
 
         String file = maze.saveMazeToPackageFolder("maze_output.txt");
 
@@ -59,38 +59,20 @@ public class tileManger {
 	}
 	
 	public void loadMap(String filePath) {
-		try {
-			
-			InputStream is = getClass().getResourceAsStream(filePath);
-			BufferedReader br = new BufferedReader(new InputStreamReader(is));
-			
-			int col = 0;
-			int row = 0;
-			
-			while(col<gp.maxScreenCol && row<gp.maxScreenRow) {
-				
-				String line = br.readLine();
-				
-				while(col<gp.maxScreenCol) {
-					String numbers[] = line.split(" ");
-					
-					int num = Integer.parseInt(numbers[col]);
-					
-					mapTNum[col][row] = num;
-					col++;
-				}
-				
-				if(col == gp.maxScreenCol) {
-					col=0;
-					row++;
-				}
-				
-			}
-			br.close();
-			
-		}catch(Exception e) {
-			
-		}
+	    try (InputStream is = getClass().getResourceAsStream(filePath);
+	         BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+
+	        for (int row = 0; row < gp.maxScreenRow; row++) {
+	            String line = br.readLine();
+	            if (line == null) break;
+	            String[] numbers = line.split(" ");
+	            for (int col = 0; col < gp.maxScreenCol; col++) {
+	                mapTNum[col][row] = Integer.parseInt(numbers[col]);
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 	}
 	
 	public void draw(Graphics2D g2) {

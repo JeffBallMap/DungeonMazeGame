@@ -28,14 +28,16 @@ public class GamePanel extends JPanel implements Runnable{
 	
 	int fps = 60;
 	
-	public tileManger tileM = new tileManger(this);	
+	Maze maze = new Maze(this);
+	tileManger tileM= new tileManger(this);	
 	keyHandler keyH = new keyHandler();
+	
 	Thread gameThread;
 	public CollisionCheck collcheck = new CollisionCheck(this);
-	public objSetter objSet = new objSetter(this);
+	public objSetter objSet =new objSetter(this);
 	createPlayer player = new createPlayer(this,keyH);
 	public superObj Obj[] = new superObj[10]; 
-	Maze maze = new Maze(this);
+	
 	MazeSolver mS = new MazeSolver("/src/res/maps/maze_output.txt", maxScreenRow, maxScreenCol);
 
 	

@@ -37,7 +37,7 @@ public class MazeSolver {
             while ((line = br.readLine()) != null && row < rows) {
                 String[] numbers = line.trim().split(" ");
                 for (int col = 0; col < cols && col < numbers.length; col++) {
-                    maze[col][row] = Integer.parseInt(numbers[col]) == 0 ? 0 : 1;
+                    maze[col][row] = Integer.parseInt(numbers[col]) == 0 ? 0 : tileChoice("123444");
                 }
                 row++;
             }
@@ -50,7 +50,7 @@ public class MazeSolver {
 
     public boolean solveMaze(int x, int y) {
         // Reached goal
-        if (x == cols - 1 && y == rows - 1 && (maze[x][y] == 1 || maze[x][y] == 2 || maze[x][y] == 3 || maze[x][y] == 4)) {
+        if (x == cols - 1 && y == rows - 1 && (maze[x][y] == 1 || maze[x][y] == 2 || maze[x][y] == 3 ||maze[x][y] == 4)) {
             solution[x][y] = 1;
             return true;
         }
